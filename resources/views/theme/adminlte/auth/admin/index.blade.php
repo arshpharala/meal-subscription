@@ -1,0 +1,64 @@
+@extends('theme.adminlte.layouts.app')
+@section('content-header')
+  <div class="row mb-2">
+    <div class="col-sm-6">
+      <h1>Users</h1>
+    </div>
+    <div class="col-sm-6 d-flex flex-row justify-content-end gap-2">
+      <button data-url="{{ route('admin.auth.admins.create') }}" type="button" class="btn btn-primary"
+        onclick="getAside()">Create User</button>
+    </div>
+  </div>
+@endsection
+@section('content')
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-bordered data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+@endsection
+@push('scripts')
+  <script>
+    $(function() {
+      $('.data-table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route('admin.auth.admins.index') }}',
+        columns: [{
+            data: 'name',
+            name: 'name'
+          },
+          {
+            data: 'email',
+            name: 'email'
+          },
+          {
+            data: 'is_active',
+            name: 'is_active'
+          },
+          {
+            data: 'created_at',
+            name: 'created_at',
+          },
+          {
+            data: 'action',
+            name: 'action',
+            orderable: false,
+            searchable: false
+          }
+        ]
+      });
+    });
+  </script>
+@endpush
