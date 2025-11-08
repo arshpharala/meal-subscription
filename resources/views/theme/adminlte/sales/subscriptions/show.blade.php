@@ -3,7 +3,7 @@
 @section('content-header')
   <div class="d-flex justify-content-between align-items-center">
     <div>
-      <h1 class="fw-bold  mb-1">
+      <h1 class="fw-bold mb-1">
         <i class="fas fa-receipt me-2"></i> Subscription {!! $subscription->status_badge !!}
       </h1>
     </div>
@@ -18,6 +18,7 @@
 
     {{-- LEFT COLUMN --}}
     <div class="col-xl-4 col-lg-5">
+
       {{-- Customer Card --}}
       <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-bottom fw-bold">
@@ -27,7 +28,7 @@
           <div class="d-flex align-items-center mb-3">
             <div class="me-3">
               <img src="https://ui-avatars.com/api/?name={{ urlencode($subscription->user->name) }}&background=random"
-                alt="User Avatar" class="rounded-circle border" width="64" height="64">
+                   alt="User Avatar" class="rounded-circle border" width="64" height="64">
             </div>
             <div>
               <h5 class="fw-bold mb-1">{{ $subscription->user->name }}</h5>
@@ -38,9 +39,7 @@
           <hr>
           <h6 class="text-uppercase text-muted fw-bold small mb-2">Delivery Address</h6>
           @if ($subscription->address_id)
-            <p class="text-secondary mb-0">
-              {!! $subscription->address->render(true) !!}
-            </p>
+            <p class="text-secondary mb-0">{!! $subscription->address->render(true) !!}</p>
           @else
             <p class="text-muted mb-0">No address available</p>
           @endif
@@ -59,19 +58,15 @@
           $vat = round(($base * $vatPercent) / 100, 2);
           $total = $base + $vat;
         @endphp
-
         <div class="card-body">
-          <p class="mb-2"><strong>Stripe Payment Intent:</strong> {{ $subscription->reference ?? 'N/A' }}</p>
-          {{-- <p class="mb-2"><strong>Stripe Price ID:</strong> {{ $subscription->stripe_price ?? 'N/A' }}</p>
-          <p class="mb-2"><strong>Stripe Session:</strong> {{ $subscription->stripe_id ?? 'N/A' }}</p> --}}
-          <p class="mb-2"><strong>Stripe Status:</strong>
+          <p class="mb-2"><strong>Payment Reference:</strong> {{ $subscription->reference ?? 'N/A' }}</p>
+          <p class="mb-2"><strong>Status:</strong>
             @if ($subscription->stripe_status == 'paid')
               <span class="badge bg-success">Paid</span>
             @else
               <span class="badge bg-warning text-dark">{{ ucfirst($subscription->stripe_status) }}</span>
             @endif
           </p>
-
           <hr>
           <p class="mb-1"><span>Base Price</span>
             <strong class="float-end">AED {{ number_format($base, 2) }}</strong>
@@ -83,14 +78,14 @@
           <p class="fw-bold text-success mb-0">Total (Incl. VAT)
             <strong class="float-end">AED {{ number_format($total, 2) }}</strong>
           </p>
-
         </div>
       </div>
     </div>
 
     {{-- RIGHT COLUMN --}}
     <div class="col-xl-8 col-lg-7">
-      {{-- Meal Plan Card --}}
+
+      {{-- Meal Plan --}}
       <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-bottom fw-bold">
           <i class="fas fa-utensils text-primary me-2"></i> Meal Plan Information
@@ -123,7 +118,7 @@
         </div>
       </div>
 
-      {{-- Schedule Card --}}
+      {{-- Schedule --}}
       <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-bottom fw-bold">
           <i class="fas fa-calendar-alt text-primary me-2"></i> Subscription Schedule
@@ -160,6 +155,7 @@
         </div>
       </div>
 
+      {{-- Freeze History --}}
       <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-bottom fw-bold">
           <i class="fas fa-snowflake text-primary me-2"></i> Freeze History
@@ -172,35 +168,32 @@
               <table class="table table-sm align-middle">
                 <thead>
                   <tr>
-                    <th class="border-top-0">Period</th>
-                    <th class="border-top-0">Days</th>
-                    <th class="border-top-0">Status</th>
-                    <th class="border-top-0">Reason</th>
-                    <th class="border-top-0">Action</th>
+                    <th>Period</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($subscription->freezes as $freeze)
+                    @php
+                      $badge = [
+                        'scheduled' => 'secondary',
+                        'active' => 'warning',
+                        'completed' => 'success',
+                        'cancelled' => 'dark',
+                      ][$freeze->status] ?? 'secondary';
+                    @endphp
                     <tr>
-                      <td>{{ $freeze->freeze_start_date->format('d M Y') }} →
-                        {{ $freeze->freeze_end_date->format('d M Y') }}</td>
+                      <td>{{ $freeze->freeze_start_date->format('d M Y') }} → {{ $freeze->freeze_end_date->format('d M Y') }}</td>
                       <td>{{ $freeze->frozen_days }}</td>
-                      <td>
-                        @php
-                          $badge =
-                              [
-                                  'scheduled' => 'secondary',
-                                  'active' => 'warning',
-                                  'completed' => 'success',
-                                  'cancelled' => 'dark',
-                            ][$freeze->status] ?? 'secondary'; @endphp
-                        <span class="badge bg-{{ $badge }}">{{ ucfirst($freeze->status) }}</span>
-                      </td>
+                      <td><span class="badge bg-{{ $badge }}">{{ ucfirst($freeze->status) }}</span></td>
                       <td>{{ $freeze->reason ?? '—' }}</td>
                       <td>
                         @if ($freeze->status === 'scheduled')
                           <button class="btn btn-sm btn-outline-danger btn-delete" type="button"
-                            data-url="{{ route('admin.sales.subscription.freezes.destroy', [$subscription, $freeze]) }}">
+                                  data-url="{{ route('admin.sales.subscription.freezes.destroy', [$subscription, $freeze]) }}">
                             <i class="fas fa-times me-1"></i> Cancel
                           </button>
                         @else
@@ -215,15 +208,12 @@
           @endif
         </div>
       </div>
+
       {{-- Renewal History --}}
       <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-bottom fw-bold d-flex align-items-center justify-content-between">
-          <div>
-            <i class="fas fa-rotate-right text-primary me-2"></i> Renewal History
-          </div>
-          <small class="text-muted">
-            <i class="fas fa-info-circle me-1"></i> All renewal attempts & charges are shown here
-          </small>
+          <div><i class="fas fa-redo-alt text-primary me-2"></i> Renewal History</div>
+
         </div>
 
         <div class="card-body">
@@ -237,68 +227,47 @@
               <table class="table table-hover table-striped align-middle">
                 <thead class="bg-light text-muted small text-uppercase">
                   <tr>
-                    <th class="py-2">#</th>
-                    <th class="py-2">Date</th>
-                    <th class="py-2">Gateway</th>
-                    <th class="py-2 text-end">Amount</th>
-                    <th class="py-2 text-end">Tax</th>
-                    <th class="py-2 text-end">Total</th>
-                    <th class="py-2">Status</th>
-                    <th class="py-2">Reference</th>
-                    <th class="py-2 text-center">Action</th>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Gateway</th>
+                    <th>Amount</th>
+                    <th>Tax</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Reference</th>
+                    <th class="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach ($subscription->renewalLogs->sortByDesc('charged_at') as $index => $log)
+                  @foreach ($subscription->renewalLogs->sortByDesc('charged_at') as $log)
                     @php
-                      $statusBadge = match ($log->status) {
-                          'success' => 'success',
-                          'failed' => 'danger',
-                          'pending' => 'warning',
-                          default => 'secondary',
+                      $statusBadge = match($log->status) {
+                        'success' => 'success', 'failed' => 'danger', 'pending' => 'warning', default => 'secondary',
                       };
-                      $gatewayName = match ($log->gateway_id) {
-                          1 => ['label' => 'Stripe', 'icon' => 'fab fa-cc-stripe text-primary'],
-                          2 => ['label' => 'PayPal', 'icon' => 'fab fa-cc-paypal text-info'],
-                          3 => ['label' => 'Cash', 'icon' => 'fas fa-money-bill text-muted'],
-                          default => ['label' => 'Other', 'icon' => 'fas fa-credit-card text-muted'],
+                      $gatewayName = match($log->gateway_id) {
+                        1 => ['label' => 'Stripe', 'icon' => 'fab fa-cc-stripe text-primary'],
+                        2 => ['label' => 'PayPal', 'icon' => 'fab fa-cc-paypal text-info'],
+                        3 => ['label' => 'Cash', 'icon' => 'fas fa-money-bill text-muted'],
+                        default => ['label' => 'Other', 'icon' => 'fas fa-credit-card text-muted'],
                       };
                     @endphp
                     <tr>
-                      <td class="text-muted small">{{ $index + 1 }}</td>
-                      <td>
-                        {{ $log->charged_at?->format('d M Y, h:i A') ?? 'N/A' }}
-                        <br><small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
+                      <td class="text-muted small">{{ $loop->iteration }}</td>
+                      <td>{{ $log->charged_at?->format('d M Y, h:i A') ?? 'N/A' }}<br>
+                        <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
                       </td>
-                      <td>
-                        <i class="{{ $gatewayName['icon'] }} me-1"></i>{{ $gatewayName['label'] }}
-                      </td>
-                      <td class="text-end">AED {{ number_format($log->amount, 2) }}</td>
-                      <td class="text-end">AED {{ number_format($log->tax_amount, 2) }}</td>
-                      <td class="fw-bold text-success text-end">AED {{ number_format($log->total_amount, 2) }}</td>
-                      <td>
-                        <span class="badge bg-{{ $statusBadge }}">
-                          <i class="fas fa-circle me-1" style="font-size: 0.5rem"></i>
-                          {{ ucfirst($log->status) }}
-                        </span>
-                      </td>
-                      <td class="text-monospace small">
-                        {{ Str::limit($log->reference, 20) ?? 'N/A' }}
-                      </td>
-                      <td class="text-center text-nowrap">
+                      <td><i class="{{ $gatewayName['icon'] }} me-1"></i>{{ $gatewayName['label'] }}</td>
+                      <td class="">AED {{ number_format($log->amount, 2) }}</td>
+                      <td class="">AED {{ number_format($log->tax_amount, 2) }}</td>
+                      <td class="fw-bold text-success ">AED {{ number_format($log->total_amount, 2) }}</td>
+                      <td><span class="badge bg-{{ $statusBadge }}">{{ ucfirst($log->status) }}</span></td>
+                      <td class="text-monospace small">{{ Str::limit($log->reference, 20) ?? 'N/A' }}</td>
+                      <td class="text-center">
                         @if ($log->receipt_url)
                           <a href="{{ $log->receipt_url }}" target="_blank"
-                            class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="View Receipt">
+                             class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="View Receipt">
                             <i class="fas fa-receipt"></i>
                           </a>
-                        @endif
-
-                        @if ($log->status === 'failed')
-                          <button class="btn btn-sm btn-outline-warning btn-retry"
-                            data-url="{{ route('admin.sales.subscriptions.renewals.retry', [$subscription->id, $log->id]) }}"
-                            data-bs-toggle="tooltip" title="Retry Payment">
-                            <i class="fas fa-redo"></i>
-                          </button>
                         @endif
                       </td>
                     </tr>
@@ -310,110 +279,105 @@
         </div>
       </div>
 
-      @push('scripts')
-        <script>
-          $(function() {
-            $('[data-bs-toggle="tooltip"]').tooltip();
-
-            $(document).on('click', '.btn-retry', function(e) {
-              e.preventDefault();
-              const url = $(this).data('url');
-              const btn = $(this);
-
-              Swal.fire({
-                title: 'Retry Payment?',
-                text: 'This will reattempt the renewal charge using saved card details.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Retry',
-                cancelButtonText: 'Cancel',
-                reverseButtons: true
-              }).then(result => {
-                if (result.isConfirmed) {
-                  btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-                  $.ajax({
-                    url: url,
-                    type: 'POST',
-                    headers: {
-                      'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(res) {
-                      Swal.fire(res.title, res.message, 'success');
-                      setTimeout(() => window.location.reload(), 1200);
-                    },
-                    error: function(err) {
-                      const msg = err.responseJSON?.message || 'Retry failed.';
-                      Swal.fire('Error', msg, 'error');
-                    },
-                    complete: function() {
-                      btn.prop('disabled', false).html('<i class="fas fa-redo"></i>');
-                    }
-                  });
-                }
-              });
-            });
-          });
-        </script>
-      @endpush
-
-
-
-      {{-- Activity Timeline --}}
-      {{-- <div class="card shadow-sm border-0 rounded-3 mb-4">
-        <div class="card-header bg-white border-bottom fw-bold">
-          <i class="fas fa-stream text-primary me-2"></i> Activity Timeline
-        </div>
-        <div class="card-body">
-          @if ($subscription->logs && $subscription->logs->count())
-            <div class="timeline timeline-inverse">
-              @foreach ($subscription->logs as $log)
-                <div class="time-label">
-                  <span class="bg-primary">{{ $log->created_at->format('d M Y') }}</span>
-                </div>
-                <div>
-                  <i class="fas fa-info-circle bg-info"></i>
-                  <div class="timeline-item">
-                    <span class="time"><i class="far fa-clock"></i> {{ $log->created_at->format('h:i A') }}</span>
-                    <h3 class="timeline-header fw-bold">{{ $log->title }}</h3>
-                    <div class="timeline-body text-muted">
-                      {{ $log->message }}
-                    </div>
-                  </div>
-                </div>
-              @endforeach
-            </div>
-          @else
-            <div class="text-center py-3 text-muted">
-              <i class="fas fa-history fa-2x mb-2"></i>
-              <p class="mb-0">No recent activity found for this subscription.</p>
-            </div>
-          @endif
-        </div>
-      </div> --}}
-
       {{-- Action Buttons --}}
       <div class="text-end mt-3">
         @if ($subscription->status == 'active')
           <button class="btn btn-danger btn-delete" type="button"
-            data-url="{{ route('admin.sales.subscriptions.destroy', ['subscription' => $subscription]) }}">
+                  data-url="{{ route('admin.sales.subscriptions.destroy', ['subscription' => $subscription]) }}">
             <i class="fas fa-ban me-1"></i> Cancel Subscription
           </button>
           <button class="btn btn-warning"
-            data-url="{{ route('admin.sales.subscription.freezes.create', $subscription) }}" onclick="getAside()">
+                  data-url="{{ route('admin.sales.subscription.freezes.create', $subscription) }}" onclick="getAside()">
             <i class="fas fa-snowflake me-1"></i> Freeze Subscription
           </button>
-        @elseif ($subscription->status == 'cancelled')
-          <button class="btn btn-secondary" disabled>
-            <i class="fas fa-times-circle me-1"></i> Subscription Cancelled
+        @endif
+
+        {{-- Manual Renew --}}
+        @if ($subscription->end_date?->isPast() || !$subscription->auto_charge)
+          <button class="btn btn-primary btn-renew"
+                  data-url="{{ route('admin.sales.subscription.manualRenew', $subscription->id) }}">
+            <i class="fas fa-redo me-1"></i> Manual Renew
           </button>
-          {{-- @else
-          <button class="btn btn-outline-primary">
-            <i class="fas fa-redo me-1"></i> Reactivate
-          </button> --}}
         @endif
       </div>
     </div>
   </div>
-
-
 @endsection
+
+@push('scripts')
+<script>
+$(function () {
+  $('[data-bs-toggle="tooltip"]').tooltip();
+
+  $(document).on('click', '.btn-retry', function (e) {
+    e.preventDefault();
+    const url = $(this).data('url');
+    const btn = $(this);
+    Swal.fire({
+      title: 'Retry Payment?',
+      text: 'This will reattempt the renewal charge using saved card details.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Retry',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (result.isConfirmed) {
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        $.ajax({
+          url: url,
+          type: 'POST',
+          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+          success: function (res) {
+            Swal.fire(res.title, res.message, 'success');
+            setTimeout(() => window.location.reload(), 1200);
+          },
+          error: function (err) {
+            const msg = err.responseJSON?.message || 'Retry failed.';
+            Swal.fire('Error', msg, 'error');
+          },
+          complete: function () {
+            btn.prop('disabled', false).html('<i class="fas fa-redo"></i>');
+          }
+        });
+      }
+    });
+  });
+
+  $(document).on('click', '.btn-renew', function (e) {
+    e.preventDefault();
+    const url = $(this).data('url');
+    const btn = $(this);
+    Swal.fire({
+      title: 'Renew Subscription?',
+      text: 'This will extend the subscription and charge the customer again.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Renew Now',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (result.isConfirmed) {
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Renewing...');
+        $.ajax({
+          url: url,
+          type: 'POST',
+          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+          success: function (res) {
+            Swal.fire(res.title, res.message, 'success');
+            setTimeout(() => window.location.reload(), 1200);
+          },
+          error: function (err) {
+            const msg = err.responseJSON?.message || 'Renewal failed';
+            Swal.fire('Error', msg, 'error');
+          },
+          complete: function () {
+            btn.prop('disabled', false).html('<i class="fas fa-redo me-1"></i> Manual Renew');
+          }
+        });
+      }
+    });
+  });
+});
+</script>
+@endpush

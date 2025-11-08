@@ -9,6 +9,7 @@ use App\Services\StripeService;
 use App\Models\Catalog\MealPackage;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog\MealPackagePrice;
+use App\Services\Stripe\StripeCatalogService;
 use App\Http\Requests\Catalog\MealPackageStoreRequest;
 
 class MealPackageController extends Controller
@@ -50,7 +51,7 @@ class MealPackageController extends Controller
 
         $validated = $request->validated();
 
-        $stripeService = new StripeService();
+        $stripeService = new StripeCatalogService();
 
         foreach ($validated['packages'] ?? [] as $key => $packageId) {
             $mealPackage            = MealPackage::firstOrNew(['meal_id' => $meal->id, 'package_id' => $packageId]);

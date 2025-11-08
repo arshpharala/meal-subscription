@@ -59,7 +59,7 @@ class SubscriptionFreezeController extends Controller
             $frozenDays = $freeze->frozen_days ?? 0;
 
             if ($frozenDays > 0) {
-                $scheduler->pushSchedule($subscription, -$frozenDays);
+                $scheduler->recalcSchedule($subscription);
             }
 
             $freeze->update(['status' => 'cancelled']);

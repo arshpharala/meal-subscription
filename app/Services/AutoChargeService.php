@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Sales\Subscription;
 use App\Models\Sales\SubscriptionRenewalLog;
-use App\Services\StripeService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,9 +17,9 @@ class AutoChargeService
         $this->stripe = $stripe;
     }
 
-    /**
-     * Process all subscriptions that are due for auto charge.
-     */
+    /* ============================================================
+     | 1️⃣ AUTO PROCESSOR (CRON)
+     ============================================================ */
     public function chargeDueSubscriptions(): void
     {
         $today = now()->startOfDay();
@@ -43,77 +42,99 @@ class AutoChargeService
             try {
                 $this->attemptCharge($subscription);
             } catch (\Throwable $e) {
-                Log::error('[AutoCharge] Error for Subscription ' . $subscription->id . ': ' . $e->getMessage());
+                Log::error("[AutoCharge] Error for Sub #{$subscription->id}: " . $e->getMessage());
             }
         }
     }
 
-    /**
-     * Attempt to charge a single subscription.
-     */
-    public function attemptCharge(Subscription $subscription): void
+    /* ============================================================
+     | 2️⃣ ATTEMPT CHARGE
+     ============================================================ */
+    public function attemptCharge(Subscription $subscription): array
     {
-        DB::transaction(function () use ($subscription) {
-            $user = $subscription->user;
-            $price = $subscription->mealPackagePrice;
-            $country = $subscription->address->country ?? null;
-            $tax = $country?->tax;
+        DB::beginTransaction();
 
+        try {
+            // Basic details
+            $price      = $subscription->mealPackagePrice;
+            $country    = $subscription->address->country ?? null;
+            $tax        = $country?->tax;
             $baseAmount = $price->price;
-            $taxAmount = $tax ? round($baseAmount * ($tax->percentage / 100), 2) : 0;
+            $taxAmount  = $tax ? round($baseAmount * ($tax->percentage / 100), 2) : 0;
             $totalAmount = $baseAmount + $taxAmount;
 
-            $gatewayId = 1; // 1 = Stripe, can extend later for other gateways
+            // Attempt Stripe charge
+            $stripeResult = $this->stripe->chargeSubscriptionRenewal($subscription);
 
-            // 1️⃣ Attempt payment (currently only Stripe supported)
-            $reference = null;
-            $status = 'pending';
-            $message = null;
+            // Handle Stripe response
+            $isSuccess = $stripeResult->status === 'success';
+            $reference = $stripeResult->reference ?? null;
+            $receiptUrl = $stripeResult->receipt_url ?? null;
+            $message = $stripeResult->message ?? ($isSuccess ? 'Payment successful' : 'Charge failed');
 
-            try {
-                $result = $this->stripe->chargeSubscriptionRenewal($subscription, $baseAmount, $tax);
-                $reference = $result->intent->id ?? null;
-                $receiptUrl = $result->receipt_url ?? null;
-                $status = 'success';
-            } catch (\Stripe\Exception\CardException $e) {
-                $status = 'failed';
-                $receiptUrl = null;
-                $message = $e->getError()->message ?? 'Card declined';
-            } catch (\Exception $e) {
-                $status = 'failed';
-                $receiptUrl = null;
-                $message = $e->getMessage();
-            }
-
-            SubscriptionRenewalLog::create([
-                'subscription_id' => $subscription->id,
-                'reference'       => $reference,
-                'receipt_url'     => $receiptUrl, // ✅ store here
-                'gateway_id'      => $gatewayId,
-                'tax_id'          => $tax?->id,
-                'currency_id'     => $country?->currency_id ?? 1,
-                'amount'          => $baseAmount,
-                'tax_amount'      => $taxAmount,
-                'total_amount'    => $totalAmount,
-                'status'          => $status,
-                'message'         => $message,
-                'charged_at'      => now(),
+            // Log renewal result
+            $this->logRenewal($subscription, [
+                'gateway_id'   => 1, // Stripe default
+                'reference'    => $reference,
+                'receipt_url'  => $receiptUrl,
+                'tax_id'       => $tax?->id,
+                'currency_id'  => $country?->currency_id ?? 1,
+                'amount'       => $baseAmount,
+                'tax_amount'   => $taxAmount,
+                'total_amount' => $totalAmount,
+                'status'       => $isSuccess ? 'success' : 'failed',
+                'message'      => $message,
             ]);
 
-            // 3️⃣ Update subscription if success
-            if ($status === 'success') {
+            // Handle subscription update
+            if ($isSuccess) {
                 $this->renewCycle($subscription);
             } else {
                 $subscription->update(['status' => 'payment_failed']);
             }
 
-            Log::info("[AutoCharge] Renewal for Sub #{$subscription->id} ({$status}) ref={$reference}");
-        });
+            DB::commit();
+
+            Log::info("[AutoCharge] Subscription #{$subscription->id} charged ({$stripeResult->status}) Ref: {$reference}");
+
+            return [
+                'status'       => $stripeResult->status,
+                'reference'    => $reference,
+                'receipt_url'  => $receiptUrl,
+                'tax_amount'   => $stripeResult->tax_amount ?? $taxAmount,
+                'total'        => $stripeResult->total ?? $totalAmount,
+            ];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error("[AutoCharge] Fatal error for Sub #{$subscription->id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 
-    /**
-     * Renew the subscription cycle (start, end, next_charge).
-     */
+    /* ============================================================
+     | 3️⃣ RENEWAL LOG CREATION
+     ============================================================ */
+    protected function logRenewal(Subscription $subscription, array $data): void
+    {
+        // Prevent duplicate logs for the same reference
+        if (
+            !empty($data['reference']) &&
+            SubscriptionRenewalLog::where('subscription_id', $subscription->id)
+            ->where('reference', $data['reference'])
+            ->exists()
+        ) {
+            Log::warning("[AutoCharge] Skipped duplicate log for Ref {$data['reference']} (Sub {$subscription->id})");
+            return;
+        }
+
+        $subscription->renewalLogs()->create(array_merge($data, [
+            'charged_at' => now(),
+        ]));
+    }
+
+    /* ============================================================
+     | 4️⃣ RENEW SUBSCRIPTION CYCLE
+     ============================================================ */
     public function renewCycle(Subscription $subscription): void
     {
         $duration = $subscription->mealPackagePrice->duration ?? 0;
@@ -123,13 +144,13 @@ class AutoChargeService
         }
 
         $newStart = Carbon::parse($subscription->end_date)->addDay();
-        $newEnd = $newStart->copy()->addDays($duration - 1);
+        $newEnd   = $newStart->copy()->addDays($duration - 1);
 
         $subscription->update([
-            'start_date' => $newStart,
-            'end_date' => $newEnd,
+            'start_date'       => $newStart,
+            'end_date'         => $newEnd,
             'next_charge_date' => $newEnd,
-            'status' => 'active',
+            'status'           => 'active',
         ]);
     }
 }

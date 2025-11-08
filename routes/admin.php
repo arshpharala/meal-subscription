@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\Catalog\MealCalorieController;
 use App\Http\Controllers\Admin\Catalog\MealPackageController;
 use App\Http\Controllers\Admin\Sales\CustomerAddressController;
 use App\Http\Controllers\Admin\Catalog\MealExtraChargeController;
+use App\Http\Controllers\Admin\Sales\SubscriptionRenewController;
 use App\Http\Controllers\Admin\Catalog\MealPackagePriceController;
 use App\Http\Controllers\Admin\Sales\SubscriptionFreezeController;
 use App\Http\Controllers\Admin\Sales\CustomerSubscriptionController;
@@ -55,9 +56,7 @@ Route::group(['prefix' => '/sales', 'as' => 'sales.'], function () {
     Route::resource('payment-links',                        PaymentLinkController::class);
 
     Route::resource('subscription.freezes', SubscriptionFreezeController::class)->only(['create', 'store', 'destroy']);
-
-    Route::post('/subscriptions/{subscription}/renewals/{renewalId}/retry',        [SubscriptionController::class, 'retryRenewal'])->name('subscription.renewals.retry');
-    Route::post('/subscriptions/{subscription}/manual-renew',        [SubscriptionController::class, 'manualRenew'])->name('subscription.manualRenew');
+    Route::post('/subscriptions/{subscription}/manual-renew',        [SubscriptionRenewController::class, 'manualRenew'])->name('subscription.manualRenew');
 });
 
 

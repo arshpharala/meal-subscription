@@ -50,7 +50,7 @@ class Subscription extends CashierSubscription
 
     public function renewalLogs()
     {
-        return $this->hasMany(\App\Models\Sales\SubscriptionRenewalLog::class);
+        return $this->hasMany(SubscriptionRenewalLog::class);
     }
 
 

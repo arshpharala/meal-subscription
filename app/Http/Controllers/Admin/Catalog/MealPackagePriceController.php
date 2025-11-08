@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Requests\Catalog\MealPackagePriceStoreRequest;
 use App\Http\Requests\Catalog\MealPackagePriceUpdateRequest;
 use App\Models\Catalog\MealPackagePrice;
+use App\Services\Stripe\StripeCatalogService;
 use App\Services\StripeService;
 
 class MealPackagePriceController extends Controller
@@ -84,7 +85,7 @@ class MealPackagePriceController extends Controller
 
             $price = MealPackagePrice::create($validated);
 
-            (new StripeService())->createPrice($price);
+            (new StripeCatalogService())->createPrice($price);
 
             DB::commit();
         } catch (\Throwable $th) {
@@ -157,7 +158,7 @@ class MealPackagePriceController extends Controller
             $price->save();
         }
 
-        (new StripeService())->createPrice($price);
+        (new StripeCatalogService())->createPrice($price);
 
         return response()->json([
             'success' => true,
