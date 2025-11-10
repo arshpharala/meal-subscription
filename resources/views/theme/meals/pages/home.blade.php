@@ -1,116 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{{ env('APP_NAME') }} | Your Daily Dose of Nutrition</title>
   <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    @import url(https://fonts.googleapis.com/css?family=Montserrat);
-    @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
-
-    h1 {
+    * {
       margin: 0;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 8em;
-      color: #333;
-      -webkit-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
-      -moz-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
-      text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
-      word-spacing: 16px;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    p {
-      margin-top: 2px;
-      font-family: 'Open Sans', sans-serif;
-      font-size: 1.4em;
-      font-weight: bold;
-      color: #222;
-      text-shadow: 0 0 40px #FFFFFF, 0 0 30px #FFFFFF, 0 0 20px #FFFFFF;
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      background: radial-gradient(circle at top right, #ff8a00, #ff4b2b);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      overflow: hidden;
     }
 
-    .container {
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .logo {
+      font-size: 4.5rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      position: relative;
+      display: inline-block;
+    }
+
+    .logo::after {
+      content: '';
       position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 99%;
-      background: url('');
-      background-size: cover;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, #fff, #f9b233, #fff);
+      border-radius: 2px;
+      animation: shimmer 2s infinite linear;
     }
 
-    .wrapper {
-      width: 100%;
-      min-height: 100%;
-      height: auto;
-      display: table;
+    @keyframes shimmer {
+      0% { opacity: 0.3; width: 20%; }
+      50% { opacity: 1; width: 60%; }
+      100% { opacity: 0.3; width: 20%; }
+    }
+
+    p.tagline {
+      margin-top: 20px;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: #fff;
+      opacity: 0.9;
+    }
+
+    .buttons {
+      margin-top: 40px;
+    }
+
+    a.btn {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 12px 30px;
+      border-radius: 50px;
+      background-color: rgba(255,255,255,0.15);
+      color: #fff;
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.25);
+      transition: all 0.3s ease;
+    }
+
+    a.btn:hover {
+      background-color: #fff;
+      color: #ff4b2b;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .leaf-bg {
+      position: absolute;
+      inset: 0;
+      background: url('{{ asset('theme/meals/assets/images/pattern.png') }}') center/cover no-repeat;
+      opacity: 0.1;
+      z-index: 0;
     }
 
     .content {
-      display: table-cell;
-      vertical-align: middle;
+      position: relative;
+      z-index: 10;
+      padding: 20px;
     }
 
-    .item {
-      width: auto;
-      height: auto;
-      margin: 0 auto;
-      text-align: center;
-      padding: 8px;
-    }
-
-    @media only screen and (min-width: 800px) {
-      h1 {
-        font-size: 7em;
-      }
-
-      p {
-        font-size: 1.6em;
-      }
-    }
-
-    @media only screen and (max-width: 320px) {
-      h1 {
-        font-size: 2em;
-      }
-
-      p {
-        font-size: 1.2em;
-      }
-    }
-
-    a {
-      /* display: inline-block; */
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: #333;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-
-    a:hover {
-      background-color: #555;
+    @media (max-width: 600px) {
+      .logo { font-size: 2.5rem; }
+      p.tagline { font-size: 1.1rem; }
+      a.btn { padding: 10px 20px; font-size: 0.9rem; }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="wrapper">
-      <div class="content">
-        <div class="item">
-          <!-- Place your content here to have it be centered vertically and horizontally  -->
-          <h1>{{ env('APP_NAME') }}</h1>
-          <p>{{ __('Your Daily Dose of Nutrition.') }}</p>
-          <p><a href="tel:+97100000000">Contact Us</a> <a href="{{ route('admin.login') }}">Login</a></p>
-        </div>
-      </div>
+  <div class="leaf-bg"></div>
+  <div class="content">
+    <h1 class="logo">{{ env('APP_NAME', 'Nutrify') }}</h1>
+    <p class="tagline">Your Daily Dose of Nutrition.</p>
+    <div class="buttons">
+      <a href="tel:+97100000000" class="btn">Contact Us</a>
+      <a href="{{ route('admin.login') }}" class="btn">Admin Login</a>
     </div>
   </div>
 </body>
-
 </html>
