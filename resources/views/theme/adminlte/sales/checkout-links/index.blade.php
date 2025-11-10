@@ -69,19 +69,19 @@
           },
           {
             data: 'start_date',
-            name: 'checkout_links.start_date'
+            name: 'payment_links.start_date'
           },
           {
             data: 'recurring_status',
-            name: 'checkout_links.is_recurring'
+            name: 'payment_links.is_recurring'
           },
           {
             data: 'status',
-            name: 'checkout_links.status'
+            name: 'payment_links.status'
           },
           {
             data: 'created_at',
-            name: 'checkout_links.created_at'
+            name: 'payment_links.created_at'
           },
           {
             data: 'action',

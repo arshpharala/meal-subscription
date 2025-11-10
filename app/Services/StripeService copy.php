@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\CMS\Tax;
 use Stripe\StripeClient;
-use App\Models\Sales\CheckoutLink;
 use App\Models\Sales\Subscription;
 use App\Models\Catalog\MealPackage;
 use App\Models\Catalog\MealPackagePrice;
+use App\Models\Sales\PaymentLink;
 
 class StripeService
 {
@@ -22,16 +22,16 @@ class StripeService
     /**
      * Create a Stripe Checkout Session for a Checkout Link
      */
-    public function createCheckoutSession(CheckoutLink $checkout)
+    public function createCheckoutSession(PaymentLink $paymentLink)
     {
-        $priceId = $checkout->mealPackagePrice->stripe_price_id;
-        $user   = $checkout->user;
+        $priceId = $paymentLink->mealPackagePrice->stripe_price_id;
+        $user   = $paymentLink->user;
 
         if (!$user->stripe_id) {
             $user->createAsStripeCustomer();
         }
 
-        $tax = $checkout->address->country->tax;
+        $tax = $paymentLink->address->country->tax;
 
         $stripeTaxId = $tax->stripe_id;
 
@@ -53,20 +53,20 @@ class StripeService
                 'tax_rates' => [$stripeTaxId]
             ]],
             'metadata' => [
-                'checkout_link_id' => $checkout->id,
-                'meal_id' => $checkout->meal_id,
-                'meal_package_id' => $checkout->meal_package_id,
-                'meal_package_price_id' => $checkout->meal_package_price_id,
+                'paymentLink_link_id' => $paymentLink->id,
+                'meal_id' => $paymentLink->meal_id,
+                'meal_package_id' => $paymentLink->meal_package_id,
+                'meal_package_price_id' => $paymentLink->meal_package_price_id,
                 'customer_email'  => $user->email,
                 'customer_phone'  => $user->phone,
             ],
-            'success_url' => route('checkout.success', ['checkout' => $checkout->id]),
-            'cancel_url'  => route('checkout.cancel', ['checkout' => $checkout->id]),
+            'success_url' => route('checkout.success', ['checkout' => $paymentLink->id]),
+            'cancel_url'  => route('checkout.cancel', ['checkout' => $paymentLink->id]),
         ];
 
         $session = $this->stripe->checkout->sessions->create($sessionData);
 
-        $checkout->update([
+        $paymentLink->update([
             'stripe_session_id' => $session->id,
             'stripe_checkout_url' => $session->url,
         ]);

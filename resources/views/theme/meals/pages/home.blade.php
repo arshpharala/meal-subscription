@@ -1,99 +1,113 @@
-@extends('theme.meals.layouts.app')
+<!DOCTYPE html>
+<html lang="en">
 
-@section('content')
-  <div class="container py-5">
-    <div class="row">
-      <div class="col-12">
-        <h2 class="text-center mb-5">Our Delicious Meals</h2>
-      </div>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
 
-    <div class="row">
-      @forelse($meals as $meal)
-        <div class="col-12 col-md-6 col-lg-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            @if ($meal->thumbnail_file_path)
-              <img src="{{ asset('storage/' . $meal->thumbnail_file_path) }}" class="card-img-top" alt="{{ $meal->name }}"
-                style="height: 200px; object-fit: cover;">
-            @else
-              <div class="bg-light" style="height: 200px;">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                  <i class="fas fa-image text-muted fa-3x"></i>
-                </div>
-              </div>
-            @endif
-
-            <div class="card-body">
-              <h5 class="card-title">{{ $meal->name }}</h5>
-              @if ($meal->tagline)
-                <p class="card-text text-muted">{{ $meal->tagline }}</p>
-              @endif
-
-              <div class="mt-3">
-                @if ($meal->packages->isNotEmpty())
-                  <div class="small text-muted mb-2">Available in packages:</div>
-                  @foreach ($meal->packages->take(3) as $package)
-                    <span class="badge badge-pill badge-primary mr-1">
-                      {{ $package->name }}
-                    </span>
-                  @endforeach
-                  @if ($meal->packages->count() > 3)
-                    <span class="badge badge-pill badge-light">
-                      +{{ $meal->packages->count() - 3 }} more
-                    </span>
-                  @endif
-                @endif
-              </div>
-            </div>
-
-            <div class="card-footer bg-white border-top-0">
-              <a href="{{ route('meals.show', $meal->slug) }}" class="btn btn-outline-primary btn-sm">
-                View Details
-              </a>
-              @if ($meal->sample_menu_file)
-                <a href="{{ asset('storage/' . $meal->sample_menu_file) }}" class="btn btn-link btn-sm text-muted"
-                  target="_blank">
-                  <i class="fas fa-file-pdf"></i> Sample Menu
-                </a>
-              @endif
-            </div>
-          </div>
-        </div>
-      @empty
-        <div class="col-12">
-          <div class="alert alert-info text-center">
-            No meals available at the moment.
-          </div>
-        </div>
-      @endforelse
-    </div>
-
-    @if ($meals->hasPages())
-      <div class="row mt-4">
-        <div class="col-12 d-flex justify-content-center">
-          {{ $meals->links() }}
-        </div>
-      </div>
-    @endif
-  </div>
-@endsection
-
-@push('styles')
   <style>
-    .card {
-      transition: transform 0.2s ease-in-out;
+    @import url(https://fonts.googleapis.com/css?family=Montserrat);
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
+
+    h1 {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 4em;
+      color: #333;
+      -webkit-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
+      -moz-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
+      text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
+      word-spacing: 16px;
     }
 
-    .card:hover {
-      transform: translateY(-5px);
+    p {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #222;
+      text-shadow: 0 0 40px #FFFFFF, 0 0 30px #FFFFFF, 0 0 20px #FFFFFF;
     }
 
-    .badge-primary {
-      background-color: #007bff;
+    .container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 99%;
+      background: url('');
+      background-size: cover;
     }
 
-    .pagination {
-      margin-bottom: 0;
+    .wrapper {
+      width: 100%;
+      min-height: 100%;
+      height: auto;
+      display: table;
+    }
+
+    .content {
+      display: table-cell;
+      vertical-align: middle;
+    }
+
+    .item {
+      width: auto;
+      height: auto;
+      margin: 0 auto;
+      text-align: center;
+      padding: 8px;
+    }
+
+    @media only screen and (min-width: 800px) {
+      h1 {
+        font-size: 6em;
+      }
+
+      p {
+        font-size: 1.6em;
+      }
+    }
+
+    @media only screen and (max-width: 320px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      p {
+        font-size: 1.2em;
+      }
+    }
+
+    a {
+      /* display: inline-block; */
+      margin: 10px;
+      padding: 10px 20px;
+      background-color: #333;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    a:hover {
+      background-color: #555;
     }
   </style>
-@endpush
+</head>
+
+<body>
+  <div class="container">
+    <div class="wrapper">
+      <div class="content">
+        <div class="item">
+          <!-- Place your content here to have it be centered vertically and horizontally  -->
+          <h1>{{ env('APP_NAME') }}</h1>
+          <p><a href="tel:+97100000000">Contact Us</a> <a href="/admin/login">Login</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

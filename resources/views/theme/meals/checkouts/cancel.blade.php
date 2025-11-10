@@ -41,15 +41,15 @@
     <i class="fas fa-times-circle cancel-icon mb-3"></i>
     <h2 class="fw-bold text-danger mb-3">Payment Cancelled</h2>
     <p class="text-muted mb-4">
-      Hello, <strong>{{ $checkout->user->name ?? 'Customer' }}</strong>.<br>
-      You cancelled the payment process for your <strong>{{ $checkout->meal->name }}</strong> plan.
+      Hello, <strong>{{ $paymentLink->user->name ?? 'Customer' }}</strong>.<br>
+      You cancelled the payment process for your <strong>{{ $paymentLink->meal->name }}</strong> plan.
     </p>
 
     <div class="bg-light rounded p-3 mb-3 text-start small">
-      <p class="mb-1"><strong>Meal:</strong> {{ $checkout->meal->name }}</p>
-      <p class="mb-1"><strong>Duration:</strong> {{ $checkout->mealPackagePrice->duration }} Days</p>
-      <p class="mb-1"><strong>Calories:</strong> {{ $checkout->mealPackagePrice->calorie->label }} kcal</p>
-      <p class="mb-1"><strong>Amount:</strong> AED {{ number_format($checkout->mealPackagePrice->price, 2) }}</p>
+      <p class="mb-1"><strong>Meal:</strong> {{ $paymentLink->meal->name }}</p>
+      <p class="mb-1"><strong>Duration:</strong> {{ $paymentLink->mealPackagePrice->duration }} Days</p>
+      <p class="mb-1"><strong>Calories:</strong> {{ $paymentLink->mealPackagePrice->calorie->label }} kcal</p>
+      <p class="mb-1"><strong>Amount:</strong> AED {{ number_format($paymentLink->mealPackagePrice->price, 2) }}</p>
       <p class="mb-0"><strong>Status:</strong> <span class="text-danger fw-semibold">Cancelled</span></p>
     </div>
 

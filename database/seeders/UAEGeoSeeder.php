@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\CMS\Tax;
 use App\Models\CMS\Area;
 use App\Models\CMS\City;
+use App\Models\CMS\Locale;
 use App\Models\CMS\Country;
 use App\Models\CMS\Currency;
 use App\Models\CMS\Province;
@@ -20,6 +21,12 @@ class UAEGeoSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
+
+            Locale::updateOrCreate(['code' => 'en'], [
+                'name' => 'English',
+                'direction' => 'ltr'
+            ]);
+
 
             $tax = Tax::firstOrCreate(['label' => 'VAT'], ['percentage' => 5, 'is_active' => 1]);
 

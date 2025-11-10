@@ -11,22 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('checkout_links', function (Blueprint $table) {
+        Schema::create('payment_links', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('meal_id');
             $table->foreignUuid('meal_package_id');
             $table->foreignUuid('meal_package_price_id');
-
+            $table->text('description')->nullable();
+            $table->string('portal_url')->nullable();
+            $table->string('address_id');
             $table->date('start_date')->nullable();
             $table->boolean('is_recurring')->default(false);
-
+            $table->double('sub_total');
+            $table->double('tax_amount');
+            $table->double('total');
             $table->string('stripe_session_id')->nullable();
             $table->string('stripe_checkout_url')->nullable();
             $table->boolean('email_sent')->default(0);
             $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
-
             $table->timestamps();
         });
     }
@@ -36,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('checkout_links');
+        Schema::dropIfExists('payment_links');
     }
 };

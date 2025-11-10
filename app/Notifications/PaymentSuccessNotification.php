@@ -11,11 +11,11 @@ class PaymentSuccessNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $checkout;
+    protected $paymentLink;
 
-    public function __construct($checkout)
+    public function __construct($paymentLink)
     {
-        $this->checkout = $checkout;
+        $this->paymentLink = $paymentLink;
     }
 
     public function via($notifiable)
@@ -28,10 +28,10 @@ class PaymentSuccessNotification extends Notification implements ShouldQueue
         $adminEmail = config('mail.admin_email', 'admin@example.com');
 
         return (new MailMessage)
-            ->subject('Payment Confirmation – ' . $this->checkout->meal->name)
+            ->subject('Payment Confirmation – ' . $this->paymentLink->meal->name)
             ->cc($adminEmail)
             ->view('emails.payment_success', [
-                'checkout' => $this->checkout
+                'paymentLink' => $this->paymentLink
             ]);
     }
 }

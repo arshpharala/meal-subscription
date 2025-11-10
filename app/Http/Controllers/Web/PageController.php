@@ -11,14 +11,12 @@ class PageController extends Controller
 {
     public function home()
     {
-        $meals = Meal::query()
-            ->where('is_active', true)
-            ->withJoins()
-            ->withSelection()
-            ->orderBy('position')
-            ->paginate(9);
+        $restaurantName = \App\Models\Setting::get('restaurant_name', 'Our Restaurant');
+        $address = \App\Models\Setting::get('address', '123 Main St, City, Country');
+        $phone = \App\Models\Setting::get('phone', '+1 234 567 890');
+        $email = \App\Models\Setting::get('email', 'info@example.com');
 
-        return view('theme.meals.pages.home', compact('meals'));
+        return view('theme.meals.pages.home', compact('restaurantName', 'address', 'phone', 'email'));
     }
 
     public function contact()

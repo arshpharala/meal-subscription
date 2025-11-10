@@ -10,11 +10,11 @@ use Illuminate\Support\Str;
 use App\Models\Catalog\Meal;
 use App\Models\CMS\Province;
 use Illuminate\Http\Request;
-use App\Models\Sales\CheckoutLink;
 use App\Models\Catalog\MealPackage;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog\MealPackagePrice;
 use App\Http\Requests\Sales\CheckoutLinkStoreRequest;
+use App\Models\Sales\PaymentLink;
 
 class PaymentLinkController extends Controller
 {
@@ -25,7 +25,7 @@ class PaymentLinkController extends Controller
     {
 
         if (request()->ajax()) {
-            $query = CheckoutLink::query()->withJoins()->withSelection();
+            $query = PaymentLink::query()->withJoins()->withSelection();
 
             return datatables()->of($query)
 
@@ -101,9 +101,9 @@ class PaymentLinkController extends Controller
      */
     public function show(string $id)
     {
-        $checkoutLink = CheckoutLink::findOrFail($id);
+        $paymentLink = PaymentLink::findOrFail($id);
 
-        $data['checkoutLink'] = $checkoutLink;
+        $data['paymentLink'] = $paymentLink;
 
         return view('theme.adminlte.sales.checkout-links.show', $data);
     }

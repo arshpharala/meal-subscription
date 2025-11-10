@@ -74,12 +74,12 @@
 
 <body>
   @php
-    $basePrice = $checkout->mealPackagePrice->price;
-    $vatPercent = $checkout->tax->percentage ?? 5;
-    $vatLabel = $checkout->tax->label ?? 'VAT';
+    $basePrice = $paymentLink->mealPackagePrice->price;
+    $vatPercent = $paymentLink->tax->percentage ?? 5;
+    $vatLabel = $paymentLink->tax->label ?? 'VAT';
     $vatAmount = round($basePrice * ($vatPercent / 100), 2);
     $total = $basePrice + $vatAmount;
-    $package = $checkout->mealPackage->package ?? null;
+    $package = $paymentLink->mealPackage->package ?? null;
   @endphp
 
   <div class="email-wrapper">
@@ -88,9 +88,9 @@
     </div>
 
     <div class="body">
-      <p>Hi <strong>{{ $checkout->user->name ?? 'Customer' }}</strong>,</p>
+      <p>Hi <strong>{{ $paymentLink->user->name ?? 'Customer' }}</strong>,</p>
       <p>
-        We’ve received your payment for the <strong>{{ $checkout->meal->name }}</strong> meal plan.
+        We’ve received your payment for the <strong>{{ $paymentLink->meal->name }}</strong> meal plan.
         Your subscription has been successfully activated.
       </p>
 
@@ -104,14 +104,14 @@
       </div>
 
       {{-- Details --}}
-      <p><strong>Meal:</strong> {{ $checkout->meal->name }}</p>
+      <p><strong>Meal:</strong> {{ $paymentLink->meal->name }}</p>
       @if ($package)
         <p><strong>Package:</strong> {{ $package->name }}<br>
           <span style="color:#6c757d;">{{ $package->tagline }}</span>
         </p>
       @endif
-      <p><strong>Duration:</strong> {{ $checkout->mealPackagePrice->duration }} Days</p>
-      <p><strong>Calories:</strong> {{ $checkout->mealPackagePrice->calorie->label }} kcal</p>
+      <p><strong>Duration:</strong> {{ $paymentLink->mealPackagePrice->duration }} Days</p>
+      <p><strong>Calories:</strong> {{ $paymentLink->mealPackagePrice->calorie->label }} kcal</p>
 
       <p>We hope you enjoy your meal plan experience! 🍽️</p>
 

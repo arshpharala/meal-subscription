@@ -16,7 +16,12 @@ return new class extends Migration
             $table->foreignUuid('meal_package_price_id')->nullable()->after('meal_package_id');
             $table->date('next_charge_date')->nullable()->after('ends_at');
             $table->boolean('auto_charge')->default(true)->after('next_charge_date'); // to control jobs
-            $table->enum('status', ['active', 'paused', 'cancelled', 'payment_failed'])->default('active')->after('stripe_status');
+            $table->enum('status', ['scheduled', 'active', 'paused', 'cancelled', 'payment_failed'])->default('active')->after('stripe_status');
+            $table->double('sub_total');
+            $table->double('tax_amount');
+            $table->double('total');
+            $table->integer('currency_id');
+            $table->text('description');
         });
     }
 
@@ -31,6 +36,11 @@ return new class extends Migration
             $table->removeColumn('next_charge_date');
             $table->removeColumn('auto_charge');
             $table->removeColumn('status');
+            $table->removeColumn('sub_total');
+            $table->removeColumn('tax_amount');
+            $table->removeColumn('total');
+            $table->removeColumn('currency_id');
+            $table->removeColumn('description');
         });
     }
 };

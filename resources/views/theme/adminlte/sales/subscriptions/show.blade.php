@@ -28,7 +28,7 @@
           <div class="d-flex align-items-center mb-3">
             <div class="me-3">
               <img src="https://ui-avatars.com/api/?name={{ urlencode($subscription->user->name) }}&background=random"
-                   alt="User Avatar" class="rounded-circle border" width="64" height="64">
+                alt="User Avatar" class="rounded-circle border" width="64" height="64">
             </div>
             <div>
               <h5 class="fw-bold mb-1">{{ $subscription->user->name }}</h5>
@@ -162,7 +162,10 @@
         </div>
         <div class="card-body">
           @if ($subscription->freezes->isEmpty())
-            <p class="text-muted mb-0">No freezes recorded.</p>
+            <div class="text-center py-4 text-muted">
+              <i class="fas fa-snowflake fa-2x mb-2"></i>
+              <p class="mb-0">No freezes recorded.</p>
+            </div>
           @else
             <div class="table-responsive">
               <table class="table table-sm align-middle">
@@ -178,22 +181,24 @@
                 <tbody>
                   @foreach ($subscription->freezes as $freeze)
                     @php
-                      $badge = [
-                        'scheduled' => 'secondary',
-                        'active' => 'warning',
-                        'completed' => 'success',
-                        'cancelled' => 'dark',
-                      ][$freeze->status] ?? 'secondary';
+                      $badge =
+                          [
+                              'scheduled' => 'secondary',
+                              'active' => 'warning',
+                              'completed' => 'success',
+                              'cancelled' => 'dark',
+                          ][$freeze->status] ?? 'secondary';
                     @endphp
                     <tr>
-                      <td>{{ $freeze->freeze_start_date->format('d M Y') }} → {{ $freeze->freeze_end_date->format('d M Y') }}</td>
+                      <td>{{ $freeze->freeze_start_date->format('d M Y') }} →
+                        {{ $freeze->freeze_end_date->format('d M Y') }}</td>
                       <td>{{ $freeze->frozen_days }}</td>
                       <td><span class="badge bg-{{ $badge }}">{{ ucfirst($freeze->status) }}</span></td>
                       <td>{{ $freeze->reason ?? '—' }}</td>
                       <td>
                         @if ($freeze->status === 'scheduled')
                           <button class="btn btn-sm btn-outline-danger btn-delete" type="button"
-                                  data-url="{{ route('admin.sales.subscription.freezes.destroy', [$subscription, $freeze]) }}">
+                            data-url="{{ route('admin.sales.subscription.freezes.destroy', [$subscription, $freeze]) }}">
                             <i class="fas fa-times me-1"></i> Cancel
                           </button>
                         @else
@@ -241,14 +246,17 @@
                 <tbody>
                   @foreach ($subscription->renewalLogs->sortByDesc('charged_at') as $log)
                     @php
-                      $statusBadge = match($log->status) {
-                        'success' => 'success', 'failed' => 'danger', 'pending' => 'warning', default => 'secondary',
+                      $statusBadge = match ($log->status) {
+                          'success' => 'success',
+                          'failed' => 'danger',
+                          'pending' => 'warning',
+                          default => 'secondary',
                       };
-                      $gatewayName = match($log->gateway_id) {
-                        1 => ['label' => 'Stripe', 'icon' => 'fab fa-cc-stripe text-primary'],
-                        2 => ['label' => 'PayPal', 'icon' => 'fab fa-cc-paypal text-info'],
-                        3 => ['label' => 'Cash', 'icon' => 'fas fa-money-bill text-muted'],
-                        default => ['label' => 'Other', 'icon' => 'fas fa-credit-card text-muted'],
+                      $gatewayName = match ($log->gateway_id) {
+                          1 => ['label' => 'Stripe', 'icon' => 'fab fa-cc-stripe text-primary'],
+                          2 => ['label' => 'PayPal', 'icon' => 'fab fa-cc-paypal text-info'],
+                          3 => ['label' => 'Cash', 'icon' => 'fas fa-money-bill text-muted'],
+                          default => ['label' => 'Other', 'icon' => 'fas fa-credit-card text-muted'],
                       };
                     @endphp
                     <tr>
@@ -265,7 +273,7 @@
                       <td class="text-center">
                         @if ($log->receipt_url)
                           <a href="{{ $log->receipt_url }}" target="_blank"
-                             class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="View Receipt">
+                            class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="View Receipt">
                             <i class="fas fa-receipt"></i>
                           </a>
                         @endif
@@ -283,11 +291,11 @@
       <div class="text-end mt-3">
         @if ($subscription->status == 'active')
           <button class="btn btn-danger btn-delete" type="button"
-                  data-url="{{ route('admin.sales.subscriptions.destroy', ['subscription' => $subscription]) }}">
+            data-url="{{ route('admin.sales.subscriptions.destroy', ['subscription' => $subscription]) }}">
             <i class="fas fa-ban me-1"></i> Cancel Subscription
           </button>
           <button class="btn btn-warning"
-                  data-url="{{ route('admin.sales.subscription.freezes.create', $subscription) }}" onclick="getAside()">
+            data-url="{{ route('admin.sales.subscription.freezes.create', $subscription) }}" onclick="getAside()">
             <i class="fas fa-snowflake me-1"></i> Freeze Subscription
           </button>
         @endif
@@ -295,7 +303,7 @@
         {{-- Manual Renew --}}
         @if ($subscription->end_date?->isPast() || !$subscription->auto_charge)
           <button class="btn btn-primary btn-renew"
-                  data-url="{{ route('admin.sales.subscription.manualRenew', $subscription->id) }}">
+            data-url="{{ route('admin.sales.subscription.manualRenew', $subscription->id) }}">
             <i class="fas fa-redo me-1"></i> Manual Renew
           </button>
         @endif
@@ -305,79 +313,83 @@
 @endsection
 
 @push('scripts')
-<script>
-$(function () {
-  $('[data-bs-toggle="tooltip"]').tooltip();
+  <script>
+    $(function() {
+      $('[data-bs-toggle="tooltip"]').tooltip();
 
-  $(document).on('click', '.btn-retry', function (e) {
-    e.preventDefault();
-    const url = $(this).data('url');
-    const btn = $(this);
-    Swal.fire({
-      title: 'Retry Payment?',
-      text: 'This will reattempt the renewal charge using saved card details.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Retry',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (result.isConfirmed) {
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-        $.ajax({
-          url: url,
-          type: 'POST',
-          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-          success: function (res) {
-            Swal.fire(res.title, res.message, 'success');
-            setTimeout(() => window.location.reload(), 1200);
-          },
-          error: function (err) {
-            const msg = err.responseJSON?.message || 'Retry failed.';
-            Swal.fire('Error', msg, 'error');
-          },
-          complete: function () {
-            btn.prop('disabled', false).html('<i class="fas fa-redo"></i>');
+      $(document).on('click', '.btn-retry', function(e) {
+        e.preventDefault();
+        const url = $(this).data('url');
+        const btn = $(this);
+        Swal.fire({
+          title: 'Retry Payment?',
+          text: 'This will reattempt the renewal charge using saved card details.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Retry',
+          cancelButtonText: 'Cancel',
+          reverseButtons: true
+        }).then(result => {
+          if (result.isConfirmed) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            $.ajax({
+              url: url,
+              type: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+              },
+              success: function(res) {
+                Swal.fire(res.title, res.message, 'success');
+                setTimeout(() => window.location.reload(), 1200);
+              },
+              error: function(err) {
+                const msg = err.responseJSON?.message || 'Retry failed.';
+                Swal.fire('Error', msg, 'error');
+              },
+              complete: function() {
+                btn.prop('disabled', false).html('<i class="fas fa-redo"></i>');
+              }
+            });
           }
         });
-      }
-    });
-  });
+      });
 
-  $(document).on('click', '.btn-renew', function (e) {
-    e.preventDefault();
-    const url = $(this).data('url');
-    const btn = $(this);
-    Swal.fire({
-      title: 'Renew Subscription?',
-      text: 'This will extend the subscription and charge the customer again.',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Renew Now',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (result.isConfirmed) {
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Renewing...');
-        $.ajax({
-          url: url,
-          type: 'POST',
-          headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-          success: function (res) {
-            Swal.fire(res.title, res.message, 'success');
-            setTimeout(() => window.location.reload(), 1200);
-          },
-          error: function (err) {
-            const msg = err.responseJSON?.message || 'Renewal failed';
-            Swal.fire('Error', msg, 'error');
-          },
-          complete: function () {
-            btn.prop('disabled', false).html('<i class="fas fa-redo me-1"></i> Manual Renew');
+      $(document).on('click', '.btn-renew', function(e) {
+        e.preventDefault();
+        const url = $(this).data('url');
+        const btn = $(this);
+        Swal.fire({
+          title: 'Renew Subscription?',
+          text: 'This will extend the subscription and charge the customer again.',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, Renew Now',
+          cancelButtonText: 'Cancel',
+          reverseButtons: true
+        }).then(result => {
+          if (result.isConfirmed) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Renewing...');
+            $.ajax({
+              url: url,
+              type: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+              },
+              success: function(res) {
+                Swal.fire(res.title, res.message, 'success');
+                setTimeout(() => window.location.reload(), 1200);
+              },
+              error: function(err) {
+                const msg = err.responseJSON?.message || 'Renewal failed';
+                Swal.fire('Error', msg, 'error');
+              },
+              complete: function() {
+                btn.prop('disabled', false).html('<i class="fas fa-redo me-1"></i> Manual Renew');
+              }
+            });
           }
         });
-      }
+      });
     });
-  });
-});
-</script>
+  </script>
 @endpush

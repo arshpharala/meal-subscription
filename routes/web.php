@@ -12,13 +12,13 @@ Route::get('/checkout/{checkout}', [CheckoutController::class, 'show'])
     ->middleware('signed')
     ->name('checkout.portal.show');
 
-Route::get('/checkout/{checkout}/success', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::get('/checkout/{checkout}/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+Route::get('/payment/{id}/success', [CheckoutController::class, 'success'])->name('payment.success');
+Route::get('/payment/{id}/cancel', [CheckoutController::class, 'cancel'])->name('payment.cancel');
 
-Route::group(['prefix' => 'meals', 'as' => 'meals.'], function () {
-    Route::get('/', [PageController::class, 'meals'])->name('index');
-    Route::get('/{slug}', [PageController::class, 'mealDetails'])->name('show');
-});
+// Route::group(['prefix' => 'meals', 'as' => 'meals.'], function () {
+//     Route::get('/', [PageController::class, 'meals'])->name('index');
+//     Route::get('/{slug}', [PageController::class, 'mealDetails'])->name('show');
+// });
 
 Route::prefix('ajax/')->name('ajax.')->group(function () {
 

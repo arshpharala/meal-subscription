@@ -18,12 +18,11 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            // AdminSeeder::class,
-            // UserSeeder::class,
-            // LocaleSeeder::class,
+            AdminSeeder::class,
+            UserSeeder::class,
             UAEGeoSeeder::class,
-            // PermissionsSeeder::class,
-            // RolesSeeder::class
+            PermissionsSeeder::class,
+            RolesSeeder::class
         ]);
     }
 }

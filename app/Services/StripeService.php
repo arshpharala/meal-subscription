@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\CMS\Tax;
-use App\Models\Sales\CheckoutLink;
+use App\Models\Sales\PaymentLink;
 use App\Models\Sales\Subscription;
 use App\Models\Catalog\MealPackage;
 use App\Models\Catalog\MealPackagePrice;
@@ -21,16 +21,16 @@ class StripeService extends StripeClientService
     }
 
     /* ============================================================
-     | CHECKOUT SESSION
+     | PAYMNT LINK SESSION
      ============================================================ */
-    public function createCheckoutSession(CheckoutLink $checkout): string
+    public function createCheckoutSession(PaymentLink $paymentLink): string
     {
-        $user = $checkout->user;
+        $user = $paymentLink->user;
         if (!$user->stripe_id) {
             $user->createAsStripeCustomer();
         }
 
-        $tax = $checkout->address->country->tax ?? null;
+        $tax = $paymentLink->address->country->tax ?? null;
         $stripeTaxId = $tax?->stripe_id ?: (new StripeTaxService())->syncTaxRate($tax);
 
         $session = $this->stripe->checkout->sessions->create([
@@ -39,19 +39,19 @@ class StripeService extends StripeClientService
             'customer' => $user->stripe_id,
             'payment_intent_data' => ['setup_future_usage' => 'off_session'],
             'line_items' => [[
-                'price' => $checkout->mealPackagePrice->stripe_price_id,
+                'price' => $paymentLink->mealPackagePrice->stripe_price_id,
                 'quantity' => 1,
                 'tax_rates' => [$stripeTaxId],
             ]],
             'metadata' => [
-                'checkout_link_id' => $checkout->id,
-                'meal_package_price_id' => $checkout->meal_package_price_id,
+                'checkout_link_id' => $paymentLink->id,
+                'meal_package_price_id' => $paymentLink->meal_package_price_id,
             ],
-            'success_url' => route('checkout.success', ['checkout' => $checkout->id]),
-            'cancel_url'  => route('checkout.cancel',  ['checkout' => $checkout->id]),
+            'success_url' => route('payment.success', ['id' => $paymentLink->id]),
+            'cancel_url'  => route('payment.cancel',  ['id' => $paymentLink->id]),
         ]);
 
-        $checkout->update([
+        $paymentLink->update([
             'stripe_session_id' => $session->id,
             'stripe_checkout_url' => $session->url,
         ]);
@@ -129,7 +129,7 @@ class StripeService extends StripeClientService
             $tax = $subscription->address->country->tax ?? null;
             $taxRateId = $tax?->stripe_id ?: (new StripeTaxService())->syncTaxRate($tax);
 
-            // 🧹 Prevent multiple draft invoices
+            // Prevent multiple draft invoices
             $existing = $this->stripe->invoices->all([
                 'customer' => $user->stripe_id,
                 'status'   => 'draft',
@@ -140,17 +140,18 @@ class StripeService extends StripeClientService
                 $this->stripe->invoices->voidInvoice($existing[0]->id);
             }
 
-            // 1️⃣ Create Invoice Item
+            // Create Invoice Item
             $invoiceItem = [
                 'customer'    => $user->stripe_id,
                 'price'       => $priceId,
                 'quantity'    => 1,
-                'description' => "Auto-Renewal: {$subscription->mealPackage->meal->name} ({$subscription->mealPackage->package->name})",
+                'description' => "Auto-Renewal: {$subscription->mealPackagePrice->getDescription()})",
             ];
+
             if ($taxRateId) $invoiceItem['tax_rates'] = [$taxRateId];
             $this->stripe->invoiceItems->create($invoiceItem);
 
-            // 2️⃣ Create Invoice
+            // Create Invoice
             $invoice = $this->stripe->invoices->create([
                 'customer' => $user->stripe_id,
                 'auto_advance' => true,
@@ -162,11 +163,11 @@ class StripeService extends StripeClientService
                 ],
             ]);
 
-            // 3️⃣ Finalize + Pay
+            // Finalize + Pay
             $this->stripe->invoices->finalizeInvoice($invoice->id);
             $paid = $this->stripe->invoices->pay($invoice->id);
 
-            // 4️⃣ Standard Response Object
+            // Standard Response Object
             return (object) [
                 'status'      => 'success',
                 'reference'   => $paid->id,

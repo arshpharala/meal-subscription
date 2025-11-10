@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use Illuminate\Http\Request;
 use App\Services\StripeService;
-use App\Models\Sales\CheckoutLink;
+use App\Models\Sales\PaymentLink;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Notification;
@@ -20,79 +20,87 @@ class CheckoutController extends Controller
         $this->stripeService = $stripeService;
     }
 
-    public function show(string $checkoutId)
+    public function show(string $paymentLinkId)
     {
-        $checkout = CheckoutLink::with([
+        $paymentLink = PaymentLink::with([
             'user',
             'meal',
             'mealPackage',
             'mealPackagePrice.calorie',
-        ])->where('status',  'pending')->findOrFail($checkoutId);
+        ])->where('status',  'pending')->findOrFail($paymentLinkId);
 
-        if ($checkout->stripe_checkout_url) {
-            return redirect()->to($checkout->stripe_checkout_url);
+        if ($paymentLink->stripe_checkout_url) {
+            return redirect()->to($paymentLink->stripe_checkout_url);
         }
 
-        $url = $this->stripeService->createCheckoutSession($checkout);
+        $url = $this->stripeService->createCheckoutSession($paymentLink);
         return redirect()->to($url);
     }
 
-    public function success(string $checkoutId)
+    public function success(string $paymentLinkId)
     {
-        $checkout = CheckoutLink::with([
+
+        $paymentLink = PaymentLink::with([
             'user',
             'meal',
             'mealPackage',
             'mealPackagePrice.calorie',
-        ])->findOrFail($checkoutId);
+        ])->findOrFail($paymentLinkId);
 
-        if ($checkout->status !== 'paid') {
-            DB::transaction(function () use ($checkout) {
-                $checkout->update(['status' => 'paid']);
-                $user = $checkout->user;
+        if ($paymentLink->status !== 'paid') {
+            DB::transaction(function () use ($paymentLink) {
+                $paymentLink->update(['status' => 'paid']);
+                $user = $paymentLink->user;
 
-                $paymentMethodId = $this->stripeService->saveUserPaymentMethod($user, $checkout->stripe_session_id);
-                $paymentIntentId = $this->stripeService->getPaymentIntentId($checkout->stripe_session_id);
+                $paymentMethodId = $this->stripeService->saveUserPaymentMethod($user, $paymentLink->stripe_session_id);
+                $paymentIntentId = $this->stripeService->getPaymentIntentId($paymentLink->stripe_session_id);
 
-                $durationDays = $checkout->mealPackagePrice->duration;
-                $startDate = now();
-                $endDate = now()->addDays($durationDays)->subDay();
+                if (now()->isSameDay($paymentLink->start_date)) {
+                    $status = 'active';
+                } else {
+                    $status = 'scheduled';
+                }
+
 
                 $user->subscriptions()->create([
                     'type' => 'meal',
                     'reference' => $paymentIntentId, // Stripe payment reference
-                    'stripe_id' => $checkout->stripe_session_id ?? 'manual_' . uniqid(),
+                    'stripe_id' => $paymentLink->stripe_session_id ?? 'manual_' . uniqid(),
                     'stripe_status' => 'paid',
-                    'stripe_price' => $checkout->mealPackagePrice->stripe_price_id,
+                    'stripe_price' => $paymentLink->mealPackagePrice->stripe_price_id,
                     'payment_method_id' => $paymentMethodId,
                     'quantity' => 1,
-                    'meal_package_id' => $checkout->meal_package_id,
-                    'meal_package_price_id' => $checkout->meal_package_price_id,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'next_charge_date' => $endDate,
-                    'auto_charge' => $checkout->is_recurring ?? false,
-                    'status' => 'active',
-                    'address_id' => $checkout->address_id,
+                    'meal_package_id' => $paymentLink->meal_package_id,
+                    'meal_package_price_id' => $paymentLink->meal_package_price_id,
+                    'start_date' => $paymentLink->start_date,
+                    'end_date' => $paymentLink->end_date,
+                    'next_charge_date' => $paymentLink->end_date,
+                    'auto_charge' => $paymentLink->is_recurring ?? false,
+                    'status' => $status,
+                    'sub_total' => $paymentLink->sub_total,
+                    'tax_amount' => $paymentLink->tax_amount,
+                    'total' => $paymentLink->total,
+                    'currency_id' => $paymentLink->currency_id ?? 1, // AED
+                    'description' => $paymentLink->description,
                 ]);
             });
 
-            $checkout->user->notify(new PaymentSuccessNotification($checkout));
+            $paymentLink->user->notify(new PaymentSuccessNotification($paymentLink));
         }
 
-        return view('checkout.success', compact('checkout'));
+        return view('theme.meals.checkouts.success', compact('paymentLink'));
     }
 
-    public function cancel(string $checkoutId)
+    public function cancel(string $paymentLinkId)
     {
-        $checkout = CheckoutLink::findOrFail($checkoutId);
+        $paymentLink = PaymentLink::findOrFail($paymentLinkId);
 
-        if ($checkout->status !== 'cancelled') {
-            $checkout->update(['status' => 'cancelled']);
+        if ($paymentLink->status !== 'cancelled') {
+            $paymentLink->update(['status' => 'cancelled']);
 
-            $checkout->user->notify(new PaymentCancelledNotification($checkout));
+            $paymentLink->user->notify(new PaymentCancelledNotification($paymentLink));
         }
 
-        return view('checkout.cancel', compact('checkout'));
+        return view('theme.meals.checkouts.cancel', compact('paymentLink'));
     }
 }
