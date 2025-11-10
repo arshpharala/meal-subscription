@@ -15,7 +15,7 @@
     h1 {
       margin: 0;
       font-family: 'Montserrat', sans-serif;
-      font-size: 4em;
+      font-size: 8em;
       color: #333;
       -webkit-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
       -moz-text-shadow: 0 2px 1px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.7);
@@ -24,6 +24,7 @@
     }
 
     p {
+      margin-top: 2px;
       font-family: 'Open Sans', sans-serif;
       font-size: 1.4em;
       font-weight: bold;
@@ -62,7 +63,7 @@
 
     @media only screen and (min-width: 800px) {
       h1 {
-        font-size: 6em;
+        font-size: 7em;
       }
 
       p {
@@ -103,7 +104,8 @@
       <div class="content">
         <div class="item">
           <!-- Place your content here to have it be centered vertically and horizontally  -->
-          <h1>{{ __('Your Daily Dose of Nutrition.') }}</h1>
+          <h1>{{ env('APP_NAME') }}</h1>
+          <p>{{ __('Your Daily Dose of Nutrition.') }}</p>
           <p><a href="tel:+97100000000">Contact Us</a> <a href="{{ route('admin.login') }}">Login</a></p>
         </div>
       </div>
