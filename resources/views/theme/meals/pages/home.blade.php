@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>{{ env('APP_NAME') }}</title>
+  <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
   <style>
     @import url(https://fonts.googleapis.com/css?family=Montserrat);
@@ -102,7 +103,7 @@
       <div class="content">
         <div class="item">
           <!-- Place your content here to have it be centered vertically and horizontally  -->
-          <h1>{{ env('APP_NAME') }}</h1>
+          <h1>{{ __('Your Daily Dose of Nutrition.') }}</h1>
           <p><a href="tel:+97100000000">Contact Us</a> <a href="{{ route('admin.login') }}">Login</a></p>
         </div>
       </div>
