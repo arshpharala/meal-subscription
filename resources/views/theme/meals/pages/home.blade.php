@@ -103,7 +103,7 @@
         <div class="item">
           <!-- Place your content here to have it be centered vertically and horizontally  -->
           <h1>{{ env('APP_NAME') }}</h1>
-          <p><a href="tel:+97100000000">Contact Us</a> <a href="/admin/login">Login</a></p>
+          <p><a href="tel:+97100000000">Contact Us</a> <a href="{{ route('admin.login') }}">Login</a></p>
         </div>
       </div>
     </div>
