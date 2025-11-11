@@ -11,9 +11,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Catalog\MealPackagePrice;
 use App\Services\Stripe\StripeCatalogService;
 use App\Http\Requests\Catalog\MealPackageStoreRequest;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class MealPackageController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -94,29 +96,69 @@ class MealPackageController extends Controller
         //
     }
 
+
     /**
-     * Remove the specified resource from storage.
+     * Remove or toggle a Meal Package.
      */
-    public function destroy(string $mealId, string $packageId)
+    public function destroy(Request $request, string $mealId, string $id)
     {
-        $mealPackage    = MealPackage::where('meal_id', $mealId)->where('package_id', $packageId)->firstOrFail();
+        $mealPackage = MealPackage::where('meal_id', $mealId)
+            ->where('package_id', $id)
+            ->firstOrFail();
 
-        if (request()->filled('status')) {
-
-            if (request()->status == 1) {
-                $mealPackage->is_active = true;
-            } else {
-                $mealPackage->is_active = false;
-            }
-            $mealPackage->save();
+        if ($request->filled('status')) {
+            $this->authorize('update', $mealPackage);
+        } else {
+            $this->authorize('delete', $mealPackage);
         }
 
+        // ===========================================================
+        // 1️⃣ Toggle Active / Inactive Status
+        // ===========================================================
+        if ($request->filled('status')) {
+            $mealPackage->is_active = (bool) $request->status;
+            $mealPackage->save();
+
+            return response()->json([
+                'success'  => true,
+                'title'    => 'Updated',
+                'message'  => __('crud.updated', ['name' => 'Meal Package Status']),
+                'redirect' => route('admin.catalog.meals.edit', ['meal' => $mealId]),
+            ]);
+        }
+
+        // ===========================================================
+        // 2️⃣ Delete Meal Package
+        // ===========================================================
+        $mealPackage->delete();
 
         return response()->json([
-            'success' => true,
-            'title' => 'Updated',
-            'message' => __('crud.updated', ['name' => 'Status']),
+            'success'  => true,
+            'title'    => 'Deleted',
+            'message'  => __('crud.deleted', ['name' => 'Meal Package']),
             'redirect' => route('admin.catalog.meals.edit', ['meal' => $mealId]),
+        ]);
+    }
+
+
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(string $mealId, string $id)
+    {
+        $mealPackage = MealPackage::where('meal_id', $mealId)
+            ->where('package_id', $id)
+            ->firstOrFail();
+
+        $this->authorize('restore', $mealPackage);
+
+        $mealPackage->restore();
+        return response()->json([
+            'success' => true,
+            'title' => 'Restored!',
+            'message' => __('crud.restored', ['name' => 'Meal']),
+            'redirect' => route('admin.catalog.meals.edit', ['meal' => $mealId])
         ]);
     }
 }

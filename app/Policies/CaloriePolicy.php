@@ -14,7 +14,7 @@ class CaloriePolicy
      */
     public function viewAny(User|Admin $user): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'View List');
     }
 
     /**
@@ -22,7 +22,7 @@ class CaloriePolicy
      */
     public function view(User|Admin $user, Calorie $calorie): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'View List');
     }
 
     /**
@@ -30,7 +30,7 @@ class CaloriePolicy
      */
     public function create(User|Admin $user): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'Create');
     }
 
     /**
@@ -38,7 +38,7 @@ class CaloriePolicy
      */
     public function update(User|Admin $user, Calorie $calorie): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'Update');
     }
 
     /**
@@ -46,7 +46,7 @@ class CaloriePolicy
      */
     public function delete(User|Admin $user, Calorie $calorie): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'Delete');
     }
 
     /**
@@ -54,7 +54,7 @@ class CaloriePolicy
      */
     public function restore(User|Admin $user, Calorie $calorie): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'Restore');
     }
 
     /**
@@ -62,6 +62,6 @@ class CaloriePolicy
      */
     public function forceDelete(User|Admin $user, Calorie $calorie): bool
     {
-        return true;
+        return $user->has_permission('Calorie', 'Restore');
     }
 }

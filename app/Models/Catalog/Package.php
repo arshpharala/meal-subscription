@@ -4,10 +4,11 @@ namespace App\Models\Catalog;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Package extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
 
     protected $fillable = ['name', 'slug', 'tagline', 'thumbnail', 'is_active'];
 

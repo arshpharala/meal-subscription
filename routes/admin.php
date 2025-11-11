@@ -44,9 +44,14 @@ Route::group(['prefix' => '/auth', 'as' => 'auth.'], function () {
 
 Route::group(['prefix' => '/catalog', 'as' => 'catalog.'], function () {
     Route::resource('meals',                                MealController::class);
+    Route::delete('meals/{meal}/restore',                [MealController::class, 'restore'])->name('meals.restore');
     Route::resource('packages',                             PackageController::class);
+    Route::delete('packages/{package}/restore',                [PackageController::class, 'restore'])->name('packages.restore');
     Route::resource('calories',                             CaloriesController::class);
+    Route::delete('calries/{calorie}/restore',                [CaloriesController::class, 'restore'])->name('calories.restore');
+
     Route::resource('meal.packages',                        MealPackageController::class);
+    Route::delete('meal/{meal}/packages/{package}/restore',                [MealPackageController::class, 'restore'])->name('meal.packages.restore');
     Route::resource('meal.package.prices',                  MealPackagePriceController::class);
 });
 

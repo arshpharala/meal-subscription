@@ -24,7 +24,7 @@ class PermissionsSeeder extends Seeder
             // 🔹 Catalog
             'Meal'     => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
             'Package'    => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
-            // 'Brand'       => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
+            'Calorie'       => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
             // 'Attribute'   => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
             // 'Coupon'      => ['View List', 'Create', 'Update', 'Delete', 'Restore'],
             // 'Vendor'      => ['View List', 'Create', 'Update', 'Delete', 'Restore'],

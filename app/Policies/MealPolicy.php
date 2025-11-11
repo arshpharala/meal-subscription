@@ -14,7 +14,7 @@ class MealPolicy
      */
     public function viewAny(Admin|User $user): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'View List');
     }
 
     /**
@@ -22,7 +22,7 @@ class MealPolicy
      */
     public function view(Admin|User $user, Meal $meal): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'View List');
     }
 
     /**
@@ -30,7 +30,7 @@ class MealPolicy
      */
     public function create(Admin|User $user): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'Create');
     }
 
     /**
@@ -38,7 +38,7 @@ class MealPolicy
      */
     public function update(Admin|User $user, Meal $meal): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'Update');
     }
 
     /**
@@ -46,7 +46,7 @@ class MealPolicy
      */
     public function delete(Admin|User $user, Meal $meal): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'Delete');
     }
 
     /**
@@ -54,7 +54,7 @@ class MealPolicy
      */
     public function restore(Admin|User $user, Meal $meal): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'Restore');
     }
 
     /**
@@ -62,6 +62,6 @@ class MealPolicy
      */
     public function forceDelete(Admin|User $user, Meal $meal): bool
     {
-        return true;
+        return $user->has_permission('Meal', 'Restore');
     }
 }

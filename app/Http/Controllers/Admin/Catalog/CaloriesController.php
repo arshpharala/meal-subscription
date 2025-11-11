@@ -24,6 +24,10 @@ class CaloriesController extends Controller
 
             $query = Calorie::query();
 
+            if (auth()->user()->can('restore', $query->getModel())) {
+                $query->withTrashed();
+            }
+
             return datatables()->of($query)
                 ->addIndexColumn()
                 ->editColumn('status', function ($row) {
@@ -42,8 +46,12 @@ class CaloriesController extends Controller
                 ->addColumn('action', function ($row) {
                     $compact['row'] = $row;
                     $compact['editUrl'] = route('admin.catalog.calories.edit', $row->id);
-                    // $dara['deleteUrl'] = route('admin.catalog.calorie.destroy', $row->id);
-                    // $compact['restoreUrl'] = route('admin.catalog.calorie.restore', $row->id);
+                    if (auth()->user()->can('delete', $row)) {
+                        $compact['deleteUrl'] = route('admin.catalog.calories.destroy', $row->id);
+                    }
+                    if (auth()->user()->can('restore', $row)) {
+                        $compact['restoreUrl'] = route('admin.catalog.calories.restore', $row->id);
+                    }
                     $compact['editSidebar'] = true;
 
                     return view('theme.adminlte.components._table-actions', $compact)->render();
@@ -163,6 +171,33 @@ class CaloriesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $calorie = Calorie::withoutTrashed()->findOrFail($id);
+
+        $this->authorize('delete', $calorie);
+        $calorie->update(['is_active' => false]);
+        $calorie->delete();
+        return response()->json([
+            'success' => true,
+            'message' => __('crud.deleted', ['name' => 'Calorie']),
+            'redirect' => route('admin.catalog.calories.index')
+        ]);
+    }
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(string $id)
+    {
+        $calorie = Calorie::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $calorie);
+
+        $calorie->restore();
+        return response()->json([
+            'success' => true,
+            'title' => 'Restored!',
+            'message' => __('crud.restored', ['name' => 'Calorie']),
+            'redirect' => route('admin.catalog.calories.index')
+        ]);
     }
 }

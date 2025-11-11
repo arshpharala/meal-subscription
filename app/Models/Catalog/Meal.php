@@ -5,10 +5,11 @@ namespace App\Models\Catalog;
 use App\Models\Attachment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Meal extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
 
     protected $fillable = ['name', 'slug', 'position', 'tagline', 'is_active', 'sample_menu_file', 'starting_price'];
 
@@ -72,6 +73,7 @@ class Meal extends Model
             'meals.position',
             'meals.is_active',
             'meals.created_at',
+            'meals.deleted_at',
             'main_attachment.file_path as thumbnail_file_path',
             'main_attachment.file_name as thumbnail_file_name',
         ]);

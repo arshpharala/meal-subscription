@@ -23,10 +23,14 @@ class MealController extends Controller
         $this->authorize('viewAny', Meal::class);
 
         if (request()->ajax()) {
-            $meals = Meal::withJoins()
+            $query = Meal::withJoins()
                 ->withSelection();
 
-            return datatables()->of($meals)
+            if (auth()->user()->can('restore', $query->getModel())) {
+                $query->withTrashed();
+            }
+
+            return datatables()->of($query)
                 ->addIndexColumn()
                 ->addColumn('thumbnail', function ($row) {
                     return $row->thumbnail_file_path
@@ -48,9 +52,15 @@ class MealController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $compact['row'] = $row;
-                    $compact['editUrl'] = route('admin.catalog.meals.edit', $row->id);
-                    // $dara['deleteUrl'] = route('admin.catalog.meals.destroy', $row->id);
-                    // $compact['restoreUrl'] = route('admin.catalog.meals.restore', $row->id);
+                    if (auth()->user()->can('update', $row)) {
+                        $compact['editUrl'] = route('admin.catalog.meals.edit', $row->id);
+                    }
+                    if (auth()->user()->can('delete', $row)) {
+                        $compact['deleteUrl'] = route('admin.catalog.meals.destroy', $row->id);
+                    }
+                    if (auth()->user()->can('restore', $row)) {
+                        $compact['restoreUrl'] = route('admin.catalog.meals.restore', $row->id);
+                    }
 
 
                     return view('theme.adminlte.components._table-actions', $compact)->render();
@@ -138,6 +148,9 @@ class MealController extends Controller
     public function edit(string $id)
     {
         $meal = Meal::findOrFail($id);
+        $meal->load(['mealPackages' => function ($query) {
+            $query->withTrashed();
+        }]);
 
         $this->authorize('update', $meal);
 
@@ -202,6 +215,33 @@ class MealController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $meal = Meal::withoutTrashed()->findOrFail($id);
+
+        $this->authorize('delete', $meal);
+        $meal->update(['is_active' => false]);
+        $meal->delete();
+        return response()->json([
+            'success' => true,
+            'message' => __('crud.deleted', ['name' => 'Meal']),
+            'redirect' => route('admin.catalog.meals.index')
+        ]);
+    }
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(string $id)
+    {
+        $meal = Meal::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $meal);
+
+        $meal->restore();
+        return response()->json([
+            'success' => true,
+            'title' => 'Restored!',
+            'message' => __('crud.restored', ['name' => 'Meal']),
+            'redirect' => route('admin.catalog.meals.index')
+        ]);
     }
 }

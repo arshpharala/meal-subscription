@@ -19,9 +19,13 @@ class PackageController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            $packages = Package::query();
+            $query = Package::query();
 
-            return datatables()->of($packages)
+            if (auth()->user()->can('restore', $query->getModel())) {
+                $query->withTrashed();
+            }
+
+            return datatables()->of($query)
                 ->addIndexColumn()
                 ->editColumn('thumbnail', function ($row) {
                     return $row->thumbnail
@@ -44,8 +48,12 @@ class PackageController extends Controller
                 ->addColumn('action', function ($row) {
                     $compact['row'] = $row;
                     $compact['editUrl'] = route('admin.catalog.packages.edit', $row->id);
-                    // $compact['deleteUrl'] = route('admin.catalog.packages.destroy', $row->id);
-                    // $compact['restoreUrl'] = route('admin.catalog.packages.restore', $row->id);
+                    if (auth()->user()->can('delete', $row)) {
+                        $compact['deleteUrl'] = route('admin.catalog.packages.destroy', $row->id);
+                    }
+                    if (auth()->user()->can('restore', $row)) {
+                        $compact['restoreUrl'] = route('admin.catalog.packages.restore', $row->id);
+                    }
                     $compact['editSidebar'] = true;
 
 
@@ -160,6 +168,33 @@ class PackageController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $package = Package::withoutTrashed()->findOrFail($id);
+
+        $this->authorize('delete', $package);
+        $package->update(['is_active' => false]);
+        $package->delete();
+        return response()->json([
+            'success' => true,
+            'message' => __('crud.deleted', ['name' => 'Package']),
+            'redirect' => route('admin.catalog.packages.index')
+        ]);
+    }
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(string $id)
+    {
+        $package = Package::onlyTrashed()->findOrFail($id);
+
+        $this->authorize('restore', $package);
+
+        $package->restore();
+        return response()->json([
+            'success' => true,
+            'title' => 'Restored!',
+            'message' => __('crud.restored', ['name' => 'Package']),
+            'redirect' => route('admin.catalog.packages.index')
+        ]);
     }
 }

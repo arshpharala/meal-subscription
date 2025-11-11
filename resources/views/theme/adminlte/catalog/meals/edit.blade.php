@@ -60,11 +60,11 @@
               <input type="file" name="sample_menu_file" class="form-control-file" accept=".pdf">
 
               @if (!empty($meal->sample_menu_file))
-              <div class="mt-2">
-                  <a href="{{ asset('storage/' . $meal->sample_menu_file) }}" target="_blank" class=" link-black text-sm"><i
-                      class="fas fa-link mr-1"></i> View Sample Menu</a>
+                <div class="mt-2">
+                  <a href="{{ asset('storage/' . $meal->sample_menu_file) }}" target="_blank"
+                    class=" link-black text-sm"><i class="fas fa-link mr-1"></i> View Sample Menu</a>
 
-              </div>
+                </div>
               @endif
             </div>
             <div class="form-group">
@@ -157,19 +157,34 @@
                         <div class="post {{ $loop->iteration > 1 }} ? 'clearfix' : ''">
                           <div class="user-block">
                             <span class="float-right">
-                              @if ($mealPackage->is_active)
+                              @if (!is_null($mealPackage->deleted_at))
                                 <a href="#"
-                                  data-url="{{ route('admin.catalog.meal.packages.destroy', ['meal' => $meal, 'package' => $package, 'status' => 0]) }}"
-                                  class="btn btn-sm btn-outline-danger text-sm btn-delete">
-                                  <i class="far fa-eye-slash mr-1"></i> Mark Inactive
+                                  data-url="{{ route('admin.catalog.meal.packages.restore', ['meal' => $meal, 'package' => $package]) }}"
+                                  class="btn btn-sm btn-outline-info text-sm btn-delete">
+                                  <i class="fas fa-trash-restore mr-1"></i> Restore
                                 </a>
                               @else
+                                @if ($mealPackage->is_active)
+                                  <a href="#"
+                                    data-url="{{ route('admin.catalog.meal.packages.destroy', ['meal' => $meal, 'package' => $package, 'status' => 0]) }}"
+                                    class="btn btn-sm btn-outline-warning text-sm btn-delete">
+                                    <i class="far fa-eye-slash mr-1"></i> Mark Inactive
+                                  </a>
+                                @else
+                                  <a href="#"
+                                    data-url="{{ route('admin.catalog.meal.packages.destroy', ['meal' => $meal, 'package' => $package, 'status' => 1]) }}"
+                                    class="btn btn-sm btn-outline-warning text-sm btn-delete">
+                                    <i class="far fa-eye mr-1"></i> Activate
+                                  </a>
+                                @endif
+
                                 <a href="#"
-                                  data-url="{{ route('admin.catalog.meal.packages.destroy', ['meal' => $meal, 'package' => $package, 'status' => 1]) }}"
-                                  class="btn btn-sm btn-outline-warning text-sm btn-delete">
-                                  <i class="far fa-eye mr-1"></i> Activate
+                                  data-url="{{ route('admin.catalog.meal.packages.destroy', ['meal' => $meal, 'package' => $package]) }}"
+                                  class="btn btn-sm btn-outline-danger text-sm btn-delete">
+                                  <i class="fas fa-trash-restore mr-1"></i> Delete
                                 </a>
                               @endif
+
                             </span>
                             <img class="img-sm img-bordered-sm" src="{{ asset('storage/' . $package->thumbnail) }}"
                               alt="user image">
@@ -203,7 +218,8 @@
                                 <tbody>
                                   @foreach ($mealPackage->prices as $price)
                                     <tr>
-                                      <td class="{{ $price->stripe_price_id ? 'text-primary' : '' }}">{{ $price->calorie->label }}</td>
+                                      <td class="{{ $price->stripe_price_id ? 'text-primary' : '' }}">
+                                        {{ $price->calorie->label }}</td>
                                       <td>{{ $price->duration }}</td>
                                       <td>{{ $price->price }}</td>
                                       <td>{{ $price->discount_percent ?? 0 }}%</td>
@@ -216,8 +232,8 @@
                                       </td>
                                       <td class="text-end">
                                         <div class="btn-group">
-                                          <button type="button" id="btn_{{ $price->id }}"
-                                            class="btn btn-default" onclick="getAside()"
+                                          <button type="button" id="btn_{{ $price->id }}" class="btn btn-default"
+                                            onclick="getAside()"
                                             data-url="{{ route('admin.catalog.meal.package.prices.edit', ['meal' => $meal, 'package' => $package, 'price' => $price]) }}"><i
                                               class="fa fa-pen"></i></button>
                                         </div>
