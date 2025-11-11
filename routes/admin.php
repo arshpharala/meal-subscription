@@ -28,6 +28,9 @@ use App\Http\Controllers\Admin\Catalog\MealPackageDurationController;
 
 Route::prefix('dashboard')->controller(DashboardController::class)->group(function () {
     Route::get('/',                     'dashboard')->name('dashboard');
+    Route::get('/stats',                'stats')->name('dashboard.stats');
+    Route::get('/chart/{type}',         'chart')->name('dashboard.chart'); // type = month|week|day
+    Route::get('/table/{section}',      'table')->name('dashboard.table'); // section = ending,new,freezed,customers
 });
 
 
