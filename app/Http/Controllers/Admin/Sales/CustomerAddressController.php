@@ -8,6 +8,7 @@ use App\Models\CMS\Province;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\AddressStoreRequest;
+use App\Http\Requests\Sales\AddressUpdateRequest;
 use App\Models\CMS\Area;
 use App\Models\CMS\City;
 
@@ -64,6 +65,10 @@ class CustomerAddressController extends Controller
             $customer->update(['default_address_id' => $address->id]);
         }
 
+        if ($customer->phone === null || $customer->phone === '') {
+            $customer->update(['phone' => $validated['phone']]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => __('crud.created', ['name' => 'Customer Address']),
@@ -105,9 +110,41 @@ class CustomerAddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(AddressUpdateRequest $request, string $customerId, string $id)
     {
-        //
+        $customer = User::findOrFail($customerId);
+        $address  = Address::where('user_id', $customerId)->findOrFail($id);
+
+        $hasSubscription = $address->subscriptions()->exists();
+        if ($hasSubscription) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This address is linked to a subscription and cannot be modified.',
+            ], 403);
+        }
+
+        $validated = $request->validated();
+
+        $address->update([
+            'phone'       => $validated['phone'],
+            'type'        => $validated['type'],
+            'province_id' => $validated['province_id'],
+            'city_id'     => $validated['city_id'],
+            'area_id'     => $validated['area_id'],
+            'address'     => $validated['address'],
+            'landmark'    => $validated['landmark'] ?? null,
+        ]);
+
+        // Update customer phone if empty
+        if (empty($customer->phone)) {
+            $customer->update(['phone' => $validated['phone']]);
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => __('crud.updated', ['name' => 'Customer Address']),
+            'redirect' => route('admin.sales.customers.show', ['customer' => $customer]),
+        ]);
     }
 
     /**

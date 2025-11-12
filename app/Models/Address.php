@@ -6,6 +6,7 @@ use App\Models\CMS\Area;
 use App\Models\CMS\City;
 use App\Models\CMS\Country;
 use App\Models\CMS\Province;
+use App\Models\Sales\Subscription;
 use Illuminate\Database\Eloquent\Model;
 
 class Address extends Model
@@ -20,6 +21,11 @@ class Address extends Model
             (object)['key' => 'work', 'name' => 'Work'],
             (object)['key' => 'other', 'name' => 'Other'],
         ]);
+    }
+
+    function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
     }
 
 

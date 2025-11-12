@@ -123,7 +123,7 @@
     <h1 class="logo">{{ env('APP_NAME', 'Nutrify') }}</h1>
     <p class="tagline">Your Daily Dose of Nutrition.</p>
     <div class="buttons">
-      <a href="tel:+97100000000" class="btn">Contact Us</a>
+      <a href="{{ route('login') }}" class="btn">Customer Login</a>
       <a href="{{ route('admin.login') }}" class="btn">Admin Login</a>
     </div>
   </div>

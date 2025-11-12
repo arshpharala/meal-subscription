@@ -147,7 +147,7 @@ class MealPackageController extends Controller
      */
     public function restore(string $mealId, string $id)
     {
-        $mealPackage = MealPackage::where('meal_id', $mealId)
+        $mealPackage = MealPackage::withTrashed()->where('meal_id', $mealId)
             ->where('package_id', $id)
             ->firstOrFail();
 

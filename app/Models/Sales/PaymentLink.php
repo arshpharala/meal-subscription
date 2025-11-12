@@ -21,6 +21,7 @@ class PaymentLink extends Model
         'meal_package_id',
         'meal_package_price_id',
         'start_date',
+        'end_date',
         'is_recurring',
         'stripe_session_id',
         'stripe_checkout_url',

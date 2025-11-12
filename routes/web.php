@@ -4,6 +4,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\CheckoutController;
+use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\DashboardController;
+use App\Http\Controllers\Customer\SubscriptionController;
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
@@ -25,3 +28,18 @@ Route::prefix('ajax/')->name('ajax.')->group(function () {
     Route::get('cities/{province}',                     [Controller::class, 'getCities'])->name('province.cities');
     Route::get('areas/{city}',                          [Controller::class, 'getAreas'])->name('city.areas');
 });
+
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth', 'verified');
+
+Route::middleware(['auth', 'verified'])->name('customer.')->group(function () {
+
+    Route::resource('/subscriptions', SubscriptionController::class)->only(['index', 'show']);
+    Route::resource('/addresses', AddressController::class);
+    Route::resource('/payments', AddressController::class);
+
+    Route::get('/profile', [AddressController::class, 'index'])->name('profile');
+});
+
+
+require __DIR__ . '/auth.php';
